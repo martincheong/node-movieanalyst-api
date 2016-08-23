@@ -7,5 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Martin Cheong",
-  "license": "MIT "
+  "license": "MIT ",
+  "dependencies": {
+    "auth0-api-jwt-rsa-validation": "0.0.1",
+    "express": "^4.14.0",
+    "express-jwt": "^3.4.0"
+  }
 }
