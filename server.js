@@ -5,6 +5,76 @@ var app = express();
 var jwt = require('express-jwt');
 var rsaValidation = require('auth0-api-jwt-rsa-validation');
 
+//jwt
+var jwtCheck = jwt({
+  secret: rsaValidation(),
+  algorithms:['RS256'],
+  issuer: "https://martincheong.auth0.com",
+  audience: 'https://martinsmovieanalyst.com'
+})
+
+//enable use of jwtcheck middleware in all of the routes
+app.use(jwtCheck);
+// If we do not get the correct credentials, we’ll return an appropriate message
+
+app.use(function(err,req,res,next){
+  if(err.name ==='UnauthorizedError'){
+    res.status(401).json({message:'Missing or invalid Token'});
+  }
+})
+
+var guard = function(req,res,next){
+  switch(req.path){
+    // if the request is for movie reviews we’ll check to see if the token has general scope
+    case '/movies' : {
+      var permissions = ['general'];
+      for(var i = 0; i < permissions.length; i++){
+        if(req.user.scope.includes(permissions[i])){
+          next();
+        } else {
+          res.send(403, {message:'Forbidden'});
+        }
+      }
+      break;
+    }
+    case '/reviewers':{
+      var permissions = ['general'];
+      for(var i=0; i< permissions.length; i++){
+        if(req.user.scope.includes(permissions[i])){
+          next();
+        } else{
+          res.send(403,{message: 'Forbidden'});
+        }
+      }
+      break;
+    }
+    case '/publications':{
+      var permissions = ['general'];
+      for(var i=0; i < permissions.length; i++){
+        if(req.user.scope.includes(permissions[i])){
+          next();
+        }else{
+          res.send(403,{message:'Forbidden'})
+        }
+      }
+      break;
+    }
+    case '/pending':{
+      var permissions = ['admin'];
+      console.log('req.user.scope');
+      for(var i=0; i < permissions.length; i++){
+        if(req.user.scope.includes(permissions[i])){
+          next();
+        }else{
+          res.sent(403,{message:'Forbidden'});
+        }
+      }
+      break;
+    }
+  }
+}
+app.use(guard);
+
 //movies API endpoint
 //hardcoded data response
 app.get('/movies', function(req,res){
@@ -65,6 +135,7 @@ app.get('/pending', function(req, res){
   // Send the list of pending movie reviews as a JSON array
   res.send(pending);
 })
+
 
 // Launch our API Server and have it listen on port 8080.
 app.listen(8080);
